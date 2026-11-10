@@ -137,9 +137,10 @@ function amperePath(radius) {
 
 function magneticFieldLines(currentMagnitude, fixedRadii = null) {
   const group = new THREE.Group();
+  const ringCount = Math.round(2 + currentMagnitude);
   const radii = fixedRadii || Array.from(
-    { length: Math.round(2 + currentMagnitude) },
-    (_, i, all) => .55 + 1.9 * Math.pow(i / Math.max(1, all.length - 1), 1.55)
+    { length: ringCount },
+    (_, i) => .55 + 1.9 * Math.pow(i / Math.max(1, ringCount - 1), 1.55)
   );
   radii.forEach((radius, index) => {
     const strength = currentMagnitude / radius;
