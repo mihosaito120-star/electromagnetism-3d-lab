@@ -72,6 +72,16 @@ function arrow(dir, origin, length, color, head = 0.28) {
   return new THREE.ArrowHelper(dir.clone().normalize(), origin, length, color, head, head * 0.55);
 }
 
+function directionMarker(dir, position, color, scale = 1) {
+  const marker = new THREE.Mesh(
+    new THREE.ConeGeometry(.085 * scale, .24 * scale, 12),
+    new THREE.MeshStandardMaterial({ color, roughness: .48 })
+  );
+  marker.position.copy(position);
+  marker.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+  return marker;
+}
+
 function wire(currentSign = 1) {
   const group = new THREE.Group();
   const cylinder = new THREE.Mesh(
@@ -102,39 +112,47 @@ function fieldRing(radius, y, sign, arrowCount = 8, opacity = 1, drawCircle = tr
     const p = new THREE.Vector3(radius * Math.cos(a), y, radius * Math.sin(a));
     // For a current along +y, B is proportional to y-hat × r-hat.
     const tangent = new THREE.Vector3(Math.sin(a) * sign, 0, -Math.cos(a) * sign);
-    group.add(arrow(tangent, p, Math.min(.58, radius * .34), COLORS.field, .2));
+    group.add(directionMarker(tangent, p, COLORS.field, Math.min(1.15, .76 + radius * .12)));
   }
   return group;
 }
 
 function amperePath(radius) {
-  const points = [];
-  for (let i = 0; i <= 128; i++) {
-    const a = (i / 128) * Math.PI * 2;
-    points.push(new THREE.Vector3(radius * Math.cos(a), 0, radius * Math.sin(a)));
+  const group = new THREE.Group();
+  const dashCount = 34;
+  const dashFraction = .64;
+  const material = new THREE.MeshStandardMaterial({ color: COLORS.path, roughness: .55 });
+  for (let i = 0; i < dashCount; i++) {
+    const start = (i / dashCount) * Math.PI * 2;
+    const end = start + (Math.PI * 2 / dashCount) * dashFraction;
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(radius * Math.cos(start), .025, radius * Math.sin(start)),
+      new THREE.Vector3(radius * Math.cos((start + end) / 2), .025, radius * Math.sin((start + end) / 2)),
+      new THREE.Vector3(radius * Math.cos(end), .025, radius * Math.sin(end)),
+    ]);
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 6, .025, 7, false), material));
   }
-  const path = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(points),
-    new THREE.LineDashedMaterial({ color: COLORS.path, dashSize: .16, gapSize: .09 })
-  );
-  path.computeLineDistances();
-  return path;
+  return group;
 }
 
-function buildHand() {
+function magneticFieldLines(currentMagnitude, fixedRadii = null) {
+  const group = new THREE.Group();
+  const radii = fixedRadii || Array.from(
+    { length: Math.round(2 + currentMagnitude) },
+    (_, i, all) => .55 + 1.9 * Math.pow(i / Math.max(1, all.length - 1), 1.55)
+  );
+  radii.forEach((radius, index) => {
+    const strength = currentMagnitude / radius;
+    const opacity = Math.min(.95, .23 + strength * .16);
+    const arrowCount = Math.max(5, Math.round(5 + strength * 1.25));
+    group.add(fieldRing(radius, 0, direction, arrowCount, opacity));
+  });
+  return group;
+}
+
+function buildHand(currentMagnitude) {
   content.add(wire(direction));
-  content.add(fieldRing(1.25, 0, direction, 9));
-  content.add(fieldRing(2.15, 0, direction, 11, .52));
-  const hand = new THREE.Group();
-  const skin = new THREE.MeshStandardMaterial({ color: COLORS.skin, transparent: true, opacity: .34, roughness: .75 });
-  const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(.25, 2.2, 10, 18), skin);
-  thumb.position.y = direction * .25;
-  hand.add(thumb);
-  const palm = new THREE.Mesh(new THREE.TorusGeometry(1.02, .22, 14, 48, Math.PI * 1.55), skin);
-  palm.rotation.x = Math.PI / 2;
-  palm.rotation.z = direction > 0 ? .55 : -.55;
-  hand.add(palm);
-  content.add(hand);
+  content.add(magneticFieldLines(currentMagnitude));
 }
 
 function buildBiot(radius) {
@@ -157,10 +175,8 @@ function buildBiot(radius) {
 
 function buildAmpere(radius) {
   content.add(wire(direction));
+  content.add(magneticFieldLines(2, [.62, .88, 1.18, 1.55, 2.05, 2.6]));
   content.add(amperePath(radius));
-  content.add(fieldRing(radius, .10, direction, 12, 1, false));
-  content.add(fieldRing(radius * .55, 0, direction, 7, .16));
-  content.add(fieldRing(radius * 1.45, 0, direction, 14, .16));
 }
 
 const copy = {
@@ -169,18 +185,21 @@ const copy = {
     text: "右手の親指を電流の向きに合わせると、曲げた指が磁場の向きを示します。",
     question: "電流を反転すると、磁場の回る向きはどうなるでしょう？",
     label: "電流の大きさ", min: .5, max: 5, step: .5, value: 2,
+    formula: "",
   },
   biot: {
     step: "STEP 2", title: "一点に届く磁場を見る",
     text: "電流要素 dℓ と観測点を結ぶ位置ベクトル r の外積が、微小磁場 dB の向きを決めます。",
     question: "観測点を遠ざけると、dBの矢印はどのように変わるでしょう？",
     label: "観測点までの距離", min: .8, max: 3.2, step: .1, value: 1.8,
+    formula: "d<b>B</b> = <span>μ<sub>0</sub></span>⁄<span>4π</span> · <span>I d<b>ℓ</b> × <b>r̂</b></span>⁄<span>r<sup>2</sup></span><small>ビオ＝サバールの法則</small>",
   },
   ampere: {
     step: "STEP 3", title: "円周に沿って一周する",
     text: "紫の円は任意に選ぶ積分経路 C、青い矢印は経路上の磁場 B です。両者は別のものです。",
     question: "経路半径を変えると、磁場 B と円周 2πr はそれぞれどう変わるでしょう？",
     label: "アンペール経路の半径", min: .8, max: 2.8, step: .1, value: 1.6,
+    formula: "∮<sub>C</sub> <b>B</b> · d<b>ℓ</b> = μ<sub>0</sub>I<sub>enc</sub><small>アンペールの法則</small>",
   },
 };
 
@@ -207,7 +226,7 @@ function updateResult(value) {
 function renderModel() {
   disposeGroup(content);
   const value = Number(range.value);
-  if (mode === "hand") buildHand();
+  if (mode === "hand") buildHand(value);
   if (mode === "biot") buildBiot(value);
   if (mode === "ampere") buildAmpere(value);
   updateResult(value);
@@ -225,6 +244,9 @@ function setMode(nextMode) {
   document.getElementById("lesson-title").textContent = c.title;
   document.getElementById("lesson-text").textContent = c.text;
   document.getElementById("question").textContent = c.question;
+  const formula = document.getElementById("law-formula");
+  formula.hidden = !c.formula;
+  formula.innerHTML = c.formula;
   document.getElementById("range-label").textContent = c.label;
   document.getElementById("r-legend").hidden = mode !== "biot";
   document.getElementById("path-legend").hidden = mode !== "ampere";
