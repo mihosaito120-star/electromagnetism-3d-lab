@@ -41,12 +41,15 @@ function axisLabel(text, color, position) {
   return sprite;
 }
 
-const axes = new THREE.AxesHelper(3.6);
+const axes = new THREE.Group();
+axes.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 2.75, 0xd73535, .24, .13));
+axes.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), 2.75, 0x2f8f46, .24, .13));
+axes.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), 2.75, 0x3156b8, .24, .13));
 axes.renderOrder = 10;
 scene.add(axes);
-scene.add(axisLabel("x", "#d73535", new THREE.Vector3(3.9, 0, 0)));
-scene.add(axisLabel("y", "#2f8f46", new THREE.Vector3(0, 3.9, 0)));
-scene.add(axisLabel("z", "#3156b8", new THREE.Vector3(0, 0, 3.9)));
+scene.add(axisLabel("x", "#d73535", new THREE.Vector3(3.02, 0, 0)));
+scene.add(axisLabel("y", "#2f8f46", new THREE.Vector3(0, 3.02, 0)));
+scene.add(axisLabel("z", "#3156b8", new THREE.Vector3(0, 0, 3.02)));
 
 const COLORS = { current: 0xef7b31, field: 0x1687a7, vector: 0x293b8f, ink: 0x12313b, skin: 0xe5ad84 };
 const content = new THREE.Group();
