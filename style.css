@@ -42,7 +42,6 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
 .legend i { width: 18px; height: 3px; display: block; border-radius: 3px; }
 .legend .current { background: var(--current); }.legend .field { background: var(--field); }.legend .vector { background: var(--vector); }
 .gesture-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 92%; padding: 7px 11px; border-radius: 99px; color: var(--muted); background: rgba(255,255,255,.84); font-size: 11px; pointer-events: none; }
-.axis-label { position: absolute; font-size: 11px; font-weight: 800; opacity: .58; pointer-events: none; }.axis-label.x{right:10px;bottom:47%}.axis-label.y{left:51%;top:7%}.axis-label.z{left:9px;top:48%}
 .controls { border-left: 1px solid var(--line); background: #fbfdfd; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; font-weight: 700; }
 .direction-button { min-height: 48px; padding: 7px 13px; border: 0; border-radius: 12px; color: white; background: var(--current); font-weight: 800; }

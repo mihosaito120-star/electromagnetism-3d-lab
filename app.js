@@ -21,6 +21,33 @@ const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
 keyLight.position.set(4, 8, 5);
 scene.add(keyLight);
 
+function axisLabel(text, color, position) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 96;
+  canvas.height = 96;
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, 96, 96);
+  context.font = "700 58px sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillStyle = color;
+  context.fillText(text, 48, 50);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+  sprite.position.copy(position);
+  sprite.scale.set(.55, .55, .55);
+  sprite.renderOrder = 20;
+  return sprite;
+}
+
+const axes = new THREE.AxesHelper(3.6);
+axes.renderOrder = 10;
+scene.add(axes);
+scene.add(axisLabel("x", "#d73535", new THREE.Vector3(3.9, 0, 0)));
+scene.add(axisLabel("y", "#2f8f46", new THREE.Vector3(0, 3.9, 0)));
+scene.add(axisLabel("z", "#3156b8", new THREE.Vector3(0, 0, 3.9)));
+
 const COLORS = { current: 0xef7b31, field: 0x1687a7, vector: 0x293b8f, ink: 0x12313b, skin: 0xe5ad84 };
 const content = new THREE.Group();
 scene.add(content);
@@ -68,7 +95,8 @@ function fieldRing(radius, y, sign, arrowCount = 8, opacity = 1) {
   for (let i = 0; i < arrowCount; i++) {
     const a = (i / arrowCount) * Math.PI * 2;
     const p = new THREE.Vector3(radius * Math.cos(a), y, radius * Math.sin(a));
-    const tangent = new THREE.Vector3(-Math.sin(a) * sign, 0, Math.cos(a) * sign);
+    // For a current along +y, B is proportional to y-hat × r-hat.
+    const tangent = new THREE.Vector3(Math.sin(a) * sign, 0, -Math.cos(a) * sign);
     group.add(arrow(tangent, p, Math.min(.58, radius * .34), COLORS.field, .2));
   }
   return group;
