@@ -8,6 +8,7 @@
   --current: #ef7b31;
   --field: #1687a7;
   --vector: #293b8f;
+  --path: #9b4fc2;
   --skin: #e5ad84;
   color-scheme: light;
 }
@@ -40,7 +41,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
 .legend { position: absolute; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 10px; border-radius: 9px; background: rgba(255,255,255,.88); font-size: 12px; font-weight: 700; pointer-events: none; }
 .legend span { display: flex; align-items: center; gap: 5px; }
 .legend i { width: 18px; height: 3px; display: block; border-radius: 3px; }
-.legend .current { background: var(--current); }.legend .field { background: var(--field); }.legend .vector { background: var(--vector); }
+.legend .current { background: var(--current); }.legend .field { background: var(--field); }.legend .vector { background: var(--vector); }.legend .path { height: 0; border-top: 3px dashed var(--path); }
 .gesture-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 92%; padding: 7px 11px; border-radius: 99px; color: var(--muted); background: rgba(255,255,255,.84); font-size: 11px; pointer-events: none; }
 .controls { border-left: 1px solid var(--line); background: #fbfdfd; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; font-weight: 700; }

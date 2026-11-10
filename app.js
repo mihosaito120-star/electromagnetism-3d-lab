@@ -51,7 +51,7 @@ scene.add(axisLabel("x", "#d73535", new THREE.Vector3(3.02, 0, 0)));
 scene.add(axisLabel("y", "#2f8f46", new THREE.Vector3(0, 3.02, 0)));
 scene.add(axisLabel("z", "#3156b8", new THREE.Vector3(0, 0, 3.02)));
 
-const COLORS = { current: 0xef7b31, field: 0x1687a7, vector: 0x293b8f, ink: 0x12313b, skin: 0xe5ad84 };
+const COLORS = { current: 0xef7b31, field: 0x1687a7, vector: 0x293b8f, path: 0x9b4fc2, ink: 0x12313b, skin: 0xe5ad84 };
 const content = new THREE.Group();
 scene.add(content);
 let mode = "hand";
@@ -83,18 +83,20 @@ function wire(currentSign = 1) {
   return group;
 }
 
-function fieldRing(radius, y, sign, arrowCount = 8, opacity = 1) {
+function fieldRing(radius, y, sign, arrowCount = 8, opacity = 1, drawCircle = true) {
   const group = new THREE.Group();
   const points = [];
   for (let i = 0; i <= 96; i++) {
     const a = (i / 96) * Math.PI * 2;
     points.push(new THREE.Vector3(radius * Math.cos(a), y, radius * Math.sin(a)));
   }
-  const line = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(points),
-    new THREE.LineBasicMaterial({ color: COLORS.field, transparent: true, opacity })
-  );
-  group.add(line);
+  if (drawCircle) {
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: COLORS.field, transparent: true, opacity })
+    );
+    group.add(line);
+  }
   for (let i = 0; i < arrowCount; i++) {
     const a = (i / arrowCount) * Math.PI * 2;
     const p = new THREE.Vector3(radius * Math.cos(a), y, radius * Math.sin(a));
@@ -103,6 +105,20 @@ function fieldRing(radius, y, sign, arrowCount = 8, opacity = 1) {
     group.add(arrow(tangent, p, Math.min(.58, radius * .34), COLORS.field, .2));
   }
   return group;
+}
+
+function amperePath(radius) {
+  const points = [];
+  for (let i = 0; i <= 128; i++) {
+    const a = (i / 128) * Math.PI * 2;
+    points.push(new THREE.Vector3(radius * Math.cos(a), 0, radius * Math.sin(a)));
+  }
+  const path = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(points),
+    new THREE.LineDashedMaterial({ color: COLORS.path, dashSize: .16, gapSize: .09 })
+  );
+  path.computeLineDistances();
+  return path;
 }
 
 function buildHand() {
@@ -141,9 +157,10 @@ function buildBiot(radius) {
 
 function buildAmpere(radius) {
   content.add(wire(direction));
-  content.add(fieldRing(radius, 0, direction, 12));
-  content.add(fieldRing(radius * .55, 0, direction, 7, .18));
-  content.add(fieldRing(radius * 1.45, 0, direction, 14, .18));
+  content.add(amperePath(radius));
+  content.add(fieldRing(radius, .10, direction, 12, 1, false));
+  content.add(fieldRing(radius * .55, 0, direction, 7, .16));
+  content.add(fieldRing(radius * 1.45, 0, direction, 14, .16));
 }
 
 const copy = {
@@ -161,8 +178,8 @@ const copy = {
   },
   ampere: {
     step: "STEP 3", title: "円周に沿って一周する",
-    text: "対称な直線電流では、円周上の磁場は接線方向で同じ大きさになります。",
-    question: "半径を大きくしても、B×円周が一定になることを確かめましょう。",
+    text: "紫の円は任意に選ぶ積分経路 C、青い矢印は経路上の磁場 B です。両者は別のものです。",
+    question: "経路半径を変えると、磁場 B と円周 2πr はそれぞれどう変わるでしょう？",
     label: "アンペール経路の半径", min: .8, max: 2.8, step: .1, value: 1.6,
   },
 };
@@ -209,7 +226,8 @@ function setMode(nextMode) {
   document.getElementById("lesson-text").textContent = c.text;
   document.getElementById("question").textContent = c.question;
   document.getElementById("range-label").textContent = c.label;
-  document.getElementById("r-legend").hidden = mode === "hand";
+  document.getElementById("r-legend").hidden = mode !== "biot";
+  document.getElementById("path-legend").hidden = mode !== "ampere";
   range.min = c.min; range.max = c.max; range.step = c.step; range.value = c.value;
   renderModel();
 }
