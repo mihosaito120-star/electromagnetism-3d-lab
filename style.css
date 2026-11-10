@@ -13,6 +13,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { background: var(--paper); }
 body { margin: 0; color: var(--ink); background: radial-gradient(circle at 90% 0%, #dceef2 0, transparent 34rem), var(--paper); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; }
 button, input { font: inherit; }
@@ -34,6 +35,8 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; }
 .step-label { margin: 0 0 12px; color: var(--field); font-size: 12px; letter-spacing: .12em; font-weight: 800; }
 .lesson-copy h2 { margin: 0 0 15px; font-size: clamp(22px, 3vw, 31px); line-height: 1.25; letter-spacing: -.03em; }
 .lesson-copy > p:not(.step-label) { margin: 0; color: var(--muted); line-height: 1.8; }
+.law-formula { margin-top: 18px; padding: 13px 10px; border-block: 1px solid var(--line); color: var(--deep); background: #f3f9fa; font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.55; text-align: center; overflow-wrap: anywhere; }
+.law-formula small { display: block; margin-top: 4px; color: var(--muted); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; font-size: 11px; }
 .question { margin-top: 28px; padding: 15px; border-left: 4px solid var(--current); background: #fff8f2; line-height: 1.65; font-weight: 700; }
 .stage-wrap { position: relative; min-height: 520px; overflow: hidden; background: linear-gradient(180deg, #f9fcfd, #eef6f7); }
 #stage { position: absolute; inset: 0; touch-action: none; }
